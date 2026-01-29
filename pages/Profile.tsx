@@ -9,7 +9,7 @@ import { UserState } from '../types';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export const Profile: React.FC = () => {
-    const { user: currentUser } = useApp();
+    const { user: currentUser, toggleFollow } = useApp();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const viewUid = searchParams.get('uid'); // Check if viewing another user
@@ -75,41 +75,23 @@ export const Profile: React.FC = () => {
     const handleFollow = async () => {
         if (!currentUser.uid || !profileUser.uid) return;
 
+        // Optimistic local update for profileUser state (follower count)
         const isFollowing = currentUser.following?.includes(profileUser.uid);
-        const isRequested = profileUser.pendingRequests?.includes(currentUser.uid);
 
-        const currentUserRef = doc(db, 'users', currentUser.uid);
-        const profileUserRef = doc(db, 'users', profileUser.uid);
-
-        try {
-            if (isFollowing) {
-                // Unfollow
-                if (window.confirm("Unfollow this user?")) {
-                    await updateDoc(currentUserRef, { following: arrayRemove(profileUser.uid) });
-                    await updateDoc(profileUserRef, { followers: arrayRemove(currentUser.uid) });
-                }
-            } else if (isRequested) {
-                // Cancel Request
-                await updateDoc(profileUserRef, { pendingRequests: arrayRemove(currentUser.uid) });
-            } else {
-                // Request Follow (Always request for now based on user feedback)
-                await updateDoc(profileUserRef, { pendingRequests: arrayUnion(currentUser.uid) });
-
-                // Create Notification
-                await addDoc(collection(db, 'notifications'), {
-                    type: 'connection_request', // Updated type
-                    recipientId: profileUser.uid,
-                    senderId: currentUser.uid,
-                    senderName: currentUser.name,
-                    senderAvatar: currentUser.avatarUrl || '',
-                    read: false,
-                    timestamp: Date.now()
-                });
-            }
-            // Optimistic update for UI feel (real update comes from snapshots usually, but we can rely on parent re-render or local state if strictly needed. Effect handles it mostly)
-        } catch (err) {
-            console.error("Error toggling follow:", err);
+        if (isFollowing) {
+            setProfileUser(prev => ({
+                ...prev,
+                followers: prev.followers?.filter(id => id !== currentUser.uid) || []
+            }));
+        } else {
+            setProfileUser(prev => ({
+                ...prev,
+                followers: [...(prev.followers || []), currentUser.uid]
+            }));
         }
+
+        // Call global toggle
+        await toggleFollow(profileUser.uid);
     };
 
     const stats = [

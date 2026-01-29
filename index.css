@@ -14,7 +14,7 @@
   --border-subtle: hsla(245, 20%, 10%, 0.08);
   --glass-bg: hsla(0, 0%, 100%, 0.7);
   --glass-border: hsla(0, 0%, 100%, 0.4);
-  --radius-lg: 24px;
+  --radius-lg: 16px;
 }
 
 [data-theme='midnight'] {
@@ -116,7 +116,7 @@ h6 {
 .premium-btn {
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
   color: white !important;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 12px 24px;
   font-weight: 700;
   border: none;
@@ -310,7 +310,7 @@ h6 {
 .explanation-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 1.5rem;
 }
 

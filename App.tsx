@@ -1,24 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserState, Exam, StudyTask, Question, QuizResult, ChatMessage } from './types';
 import { Layout } from './components/Layout';
-import { Auth } from './pages/Auth';
-import { Setup } from './pages/Setup';
-import { Dashboard } from './pages/Dashboard';
-import { Syllabus } from './pages/Syllabus';
-import { TopicDetail } from './pages/TopicDetail';
-import { Practice } from './pages/Practice';
-import { Planner } from './pages/Planner';
-import { Analytics } from './pages/Analytics';
-import { MistakeBook } from './pages/MistakeBook';
-import { Settings } from './pages/Settings';
-import { Flashcards } from './pages/Flashcards';
-import { Admin } from './pages/Admin';
-import { Profile } from './pages/Profile';
-import { Community } from './pages/Community';
-import { Network } from './pages/Network';
-import { Messages } from './pages/Messages';
-import { Notifications } from './pages/Notifications';
+const Auth = React.lazy(() => import('./pages/Auth').then(module => ({ default: module.Auth })));
+const Setup = React.lazy(() => import('./pages/Setup').then(module => ({ default: module.Setup })));
+const Dashboard = React.lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const Syllabus = React.lazy(() => import('./pages/Syllabus').then(module => ({ default: module.Syllabus })));
+const TopicDetail = React.lazy(() => import('./pages/TopicDetail').then(module => ({ default: module.TopicDetail })));
+const Practice = React.lazy(() => import('./pages/Practice').then(module => ({ default: module.Practice })));
+const Planner = React.lazy(() => import('./pages/Planner').then(module => ({ default: module.Planner })));
+const Analytics = React.lazy(() => import('./pages/Analytics').then(module => ({ default: module.Analytics })));
+const MistakeBook = React.lazy(() => import('./pages/MistakeBook').then(module => ({ default: module.MistakeBook })));
+const Settings = React.lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+const Flashcards = React.lazy(() => import('./pages/Flashcards').then(module => ({ default: module.Flashcards })));
+const Admin = React.lazy(() => import('./pages/Admin').then(module => ({ default: module.Admin })));
+const Profile = React.lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
+const Community = React.lazy(() => import('./pages/Community').then(module => ({ default: module.Community })));
+const Network = React.lazy(() => import('./pages/Network').then(module => ({ default: module.Network })));
+const Messages = React.lazy(() => import('./pages/Messages').then(module => ({ default: module.Messages })));
+const Notifications = React.lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
+const CreatePost = React.lazy(() => import('./pages/CreatePost').then(module => ({ default: module.CreatePost })));
 import { Button } from './components/ui/Button';
 import { Key, AlertTriangle, Database, ExternalLink, Shield, Sparkles } from 'lucide-react';
 import { auth, db, isFirebaseConfigured } from './services/firebase';
@@ -48,6 +50,7 @@ interface AppContextType {
   updateTopicMindMap: (examId: string, subjectId: string, topicId: string, mindMap: string) => Promise<void>;
   updateTopicChatHistory: (topicId: string, messages: ChatMessage[]) => Promise<void>;
   addQuestions: (newQuestions: Omit<Question, 'id'>[]) => Promise<void>;
+  toggleFollow: (targetUserId: string) => Promise<void>;
   theme: 'default' | 'midnight' | 'aurora' | 'rose';
   setTheme: (theme: 'default' | 'midnight' | 'aurora' | 'rose') => void;
 }
@@ -76,6 +79,8 @@ const initialUser: UserState = {
   chatHistory: {},
   role: 'student'
 };
+
+const queryClient = new QueryClient();
 
 const App: React.FC = () => {
   const [apiKeyReady, setApiKeyReady] = useState(false);
@@ -174,7 +179,17 @@ const App: React.FC = () => {
               studyHours: userData.studyHours || 4,
               history: userData.history || [],
               chatHistory: userData.chatHistory || {},
-              role: (userData.role as 'admin' | 'student') || 'student'
+              role: (userData.role as 'admin' | 'student') || 'student',
+
+              // New Fields for Social/Profile
+              bio: userData.bio || '',
+              avatarUrl: userData.avatarUrl || '',
+              followers: userData.followers || [],
+              following: userData.following || [],
+              pendingRequests: userData.pendingRequests || [],
+              socialLinks: userData.socialLinks || {},
+              stats: userData.stats || { accuracy: 0, points: 0, rank: 'Unranked' },
+              isPrivate: userData.isPrivate || false
             });
           } else {
             // New user, init profile
@@ -387,6 +402,49 @@ const App: React.FC = () => {
     }
   };
 
+  const toggleFollow = async (targetUserId: string) => {
+    if (!user.uid) return;
+
+    // 1. Optimistic Update
+    const isFollowing = user.following?.includes(targetUserId);
+    const newFollowing = isFollowing
+      ? user.following.filter(id => id !== targetUserId)
+      : [...(user.following || []), targetUserId];
+
+    setUser(prev => ({ ...prev, following: newFollowing }));
+
+    // 2. Firestore Update
+    try {
+      const currentUserRef = doc(db, 'users', user.uid);
+      const targetUserRef = doc(db, 'users', targetUserId);
+
+      if (isFollowing) {
+        // Unfollow
+        await updateDoc(currentUserRef, { following: arrayRemove(targetUserId) });
+        await updateDoc(targetUserRef, { followers: arrayRemove(user.uid) });
+      } else {
+        // Follow
+        await updateDoc(currentUserRef, { following: arrayUnion(targetUserId) });
+        await updateDoc(targetUserRef, { followers: arrayUnion(user.uid) });
+
+        // Notification (only on follow)
+        await addDoc(collection(db, 'notifications'), {
+          type: 'connection_request',
+          recipientId: targetUserId,
+          senderId: user.uid,
+          senderName: user.name,
+          senderAvatar: user.avatarUrl || '',
+          read: false,
+          timestamp: Date.now()
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling follow:", err);
+      // Rollback on error
+      setUser(prev => ({ ...prev, following: user.following })); // Revert to original
+    }
+  };
+
   const currentExam = exams.find(e => e.id === user.selectedExamId);
 
   // --- ERROR SCREEN FOR FIREBASE CONFIG ---
@@ -470,38 +528,47 @@ const App: React.FC = () => {
   );
 
   return (
-    <AppContext.Provider value={{
-      user, loading, dataLoading, logout, completeSetup, currentExam, exams, questions,
-      markTopicCompleted, addMistake, removeMistake, updateDailyTasks, saveQuizResult, refreshData,
-      updateTopicContent, updateTopicSubtopicDetails, updateTopicMindMap, updateTopicChatHistory, addQuestions, theme, setTheme
-    }}>
-      <HashRouter>
-        <Routes>
-          <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
-          <Route path="/" element={user.isAuthenticated ? (
-            user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
-          ) : <Navigate to="/auth" />} />
-          <Route path="/setup" element={user.isAuthenticated && !user.examSetupComplete ? <Setup /> : <Navigate to="/" />} />
-          <Route path="/syllabus" element={<ProtectedRoute><Layout><Syllabus /></Layout></ProtectedRoute>} />
-          <Route path="/topic/:topicId" element={<ProtectedRoute><Layout><TopicDetail /></Layout></ProtectedRoute>} />
-          <Route path="/practice" element={<ProtectedRoute><Layout><Practice /></Layout></ProtectedRoute>} />
-          <Route path="/planner" element={<ProtectedRoute><Layout><Planner /></Layout></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-          <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
-          <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
-          <Route path="/flashcards/:topicId" element={<ProtectedRoute><Layout><Flashcards /></Layout></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+    <QueryClientProvider client={queryClient}>
+      <AppContext.Provider value={{
+        user, loading, dataLoading, logout, completeSetup, currentExam, exams, questions,
+        markTopicCompleted, addMistake, removeMistake, updateDailyTasks, saveQuizResult, refreshData,
+        updateTopicContent, updateTopicSubtopicDetails, updateTopicMindMap, updateTopicChatHistory, addQuestions, toggleFollow, theme, setTheme
+      }}>
+        <HashRouter>
+          <React.Suspense fallback={<Loader message="Loading App..." type="sparkle" />}>
+            <Routes>
+              <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+              <Route path="/" element={user.isAuthenticated ? (
+                user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
+              ) : <Navigate to="/auth" />} />
+              <Route path="/setup" element={user.isAuthenticated && !user.examSetupComplete ? <Setup /> : <Navigate to="/" />} />
+              <Route path="/syllabus" element={<ProtectedRoute><Layout><Syllabus /></Layout></ProtectedRoute>} />
+              <Route path="/topic/:topicId" element={<ProtectedRoute><Layout><TopicDetail /></Layout></ProtectedRoute>} />
+              <Route path="/practice" element={<ProtectedRoute><Layout><Practice /></Layout></ProtectedRoute>} />
+              <Route path="/planner" element={<ProtectedRoute><Layout><Planner /></Layout></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
+              <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
+              <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
+              <Route path="/flashcards/:topicId" element={<ProtectedRoute><Layout><Flashcards /></Layout></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
 
-          {/* Social Features */}
-          <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
-          <Route path="/community" element={<ProtectedRoute><Layout><Community /></Layout></ProtectedRoute>} />
-          <Route path="/network" element={<ProtectedRoute><Layout><Network /></Layout></ProtectedRoute>} />
-          <Route path="/messages" element={<ProtectedRoute><Layout><Messages /></Layout></ProtectedRoute>} />
 
-          <Route path="/admin" element={<AdminOnlyRoute><Layout><Admin /></Layout></AdminOnlyRoute>} />
-        </Routes>
-      </HashRouter>
-    </AppContext.Provider>
+
+              // ... inside Routes
+              {/* Social Features */}
+              <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
+              <Route path="/community" element={<ProtectedRoute><Layout><Community /></Layout></ProtectedRoute>} />
+              <Route path="/create-post" element={<ProtectedRoute><Layout><CreatePost /></Layout></ProtectedRoute>} />
+              <Route path="/network" element={<ProtectedRoute><Layout><Network /></Layout></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Layout><Messages /></Layout></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
+
+              <Route path="/admin" element={<AdminOnlyRoute><Layout><Admin /></Layout></AdminOnlyRoute>} />
+            </Routes>
+          </React.Suspense>
+        </HashRouter>
+      </AppContext.Provider>
+    </QueryClientProvider>
   );
 };
 
