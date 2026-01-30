@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../App';
 import { CheckCircle, Clock, GraduationCap, Target, ChevronRight, AlertTriangle, Sparkles, ArrowRight, Zap, Brain } from 'lucide-react';
 import { Loader } from '../components/ui/Loader';
+import { SEO } from '../components/SEO';
 
 export const Setup: React.FC = () => {
   const { completeSetup, exams, dataLoading, user } = useApp();
@@ -68,6 +69,10 @@ export const Setup: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-theme-bg flex flex-col p-4 md:p-10 relative overflow-hidden">
+      <SEO
+        title="Setup Profile"
+        description="Configure your academic goals and study plan."
+      />
       {/* Background Orbs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary/10 blur-[120px] rounded-full -mr-40 -mt-40 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-accent/10 blur-[100px] rounded-full -ml-40 -mb-40 pointer-events-none"></div>

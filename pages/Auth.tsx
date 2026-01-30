@@ -3,6 +3,7 @@ import { Shield, User, Loader2, Mail, Lock, Sparkles, ArrowRight } from 'lucide-
 import { auth } from '../services/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { Loader } from '../components/ui/Loader';
+import { SEO } from '../components/SEO';
 
 export const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -46,6 +47,10 @@ export const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-theme-bg flex flex-col p-6 relative overflow-hidden">
+      <SEO
+        title={isForgotPassword ? 'Reset Password' : (isLogin ? 'Login' : 'Join Now')}
+        description="Access your ExamSphere account to continue your adaptive learning journey."
+      />
       {/* Decorative Background */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary/5 rounded-full blur-[120px] -mr-64 -mt-64"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-accent/5 rounded-full blur-[100px] -ml-40 -mb-40"></div>

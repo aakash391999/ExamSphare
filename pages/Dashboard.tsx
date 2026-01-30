@@ -4,13 +4,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Play, AlertTriangle, ArrowRight, Target, Zap, Brain, Clock, ChevronRight, Sparkles, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
+import { SEO } from '../components/SEO';
 
 export const Dashboard: React.FC = () => {
   const { currentExam, user } = useApp();
-
-  React.useEffect(() => {
-    document.title = "Core Dashboard | ExamSphere";
-  }, []);
 
   if (!currentExam) return (
     <div className="flex items-center justify-center min-h-[50vh]">
@@ -33,6 +30,10 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 md:space-y-10 animate-fade-in">
+      <SEO
+        title="Dashboard"
+        description={`Track your progress for ${currentExam.name}. You have completed ${progress}% of the syllabus.`}
+      />
       {/* Premium Hero Section */}
       <section className="relative overflow-hidden rounded-[2.5rem] bg-theme-bg p-8 md:p-12 text-theme-main border-2 border-theme-border shadow-inner">
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/10 blur-[80px] rounded-full -mr-32 -mt-32"></div>

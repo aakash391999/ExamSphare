@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { UserState, Exam, StudyTask, Question, QuizResult, ChatMessage } from './types';
 import { Layout } from './components/Layout';
 const Auth = React.lazy(() => import('./pages/Auth').then(module => ({ default: module.Auth })));
@@ -25,7 +26,7 @@ import { Button } from './components/ui/Button';
 import { Key, AlertTriangle, Database, ExternalLink, Shield, Sparkles } from 'lucide-react';
 import { auth, db, isFirebaseConfigured } from './services/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, onSnapshot, collection, query, getDocs, arrayUnion, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, collection, query, getDocs, arrayUnion, updateDoc, arrayRemove, addDoc } from 'firebase/firestore';
 import { Card } from './components/ui/Card';
 import { Loader } from './components/ui/Loader';
 
@@ -528,47 +529,47 @@ const App: React.FC = () => {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContext.Provider value={{
-        user, loading, dataLoading, logout, completeSetup, currentExam, exams, questions,
-        markTopicCompleted, addMistake, removeMistake, updateDailyTasks, saveQuizResult, refreshData,
-        updateTopicContent, updateTopicSubtopicDetails, updateTopicMindMap, updateTopicChatHistory, addQuestions, toggleFollow, theme, setTheme
-      }}>
-        <HashRouter>
-          <React.Suspense fallback={<Loader message="Loading App..." type="sparkle" />}>
-            <Routes>
-              <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
-              <Route path="/" element={user.isAuthenticated ? (
-                user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
-              ) : <Navigate to="/auth" />} />
-              <Route path="/setup" element={user.isAuthenticated && !user.examSetupComplete ? <Setup /> : <Navigate to="/" />} />
-              <Route path="/syllabus" element={<ProtectedRoute><Layout><Syllabus /></Layout></ProtectedRoute>} />
-              <Route path="/topic/:topicId" element={<ProtectedRoute><Layout><TopicDetail /></Layout></ProtectedRoute>} />
-              <Route path="/practice" element={<ProtectedRoute><Layout><Practice /></Layout></ProtectedRoute>} />
-              <Route path="/planner" element={<ProtectedRoute><Layout><Planner /></Layout></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-              <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
-              <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
-              <Route path="/flashcards/:topicId" element={<ProtectedRoute><Layout><Flashcards /></Layout></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppContext.Provider value={{
+          user, loading, dataLoading, logout, completeSetup, currentExam, exams, questions,
+          markTopicCompleted, addMistake, removeMistake, updateDailyTasks, saveQuizResult, refreshData,
+          updateTopicContent, updateTopicSubtopicDetails, updateTopicMindMap, updateTopicChatHistory, addQuestions, toggleFollow, theme, setTheme
+        }}>
+          <HashRouter>
+            <React.Suspense fallback={<Loader message="Loading App..." type="sparkle" />}>
+              <Routes>
+                <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+                <Route path="/" element={user.isAuthenticated ? (
+                  user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
+                ) : <Navigate to="/auth" />} />
+                <Route path="/setup" element={user.isAuthenticated && !user.examSetupComplete ? <Setup /> : <Navigate to="/" />} />
+                <Route path="/syllabus" element={<ProtectedRoute><Layout><Syllabus /></Layout></ProtectedRoute>} />
+                <Route path="/topic/:topicId" element={<ProtectedRoute><Layout><TopicDetail /></Layout></ProtectedRoute>} />
+                <Route path="/practice" element={<ProtectedRoute><Layout><Practice /></Layout></ProtectedRoute>} />
+                <Route path="/planner" element={<ProtectedRoute><Layout><Planner /></Layout></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
+                <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
+                <Route path="/mistakes" element={<ProtectedRoute><Layout><MistakeBook /></Layout></ProtectedRoute>} />
+                <Route path="/flashcards/:topicId" element={<ProtectedRoute><Layout><Flashcards /></Layout></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
 
 
+                {/* Social Features */}
+                <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
+                <Route path="/community" element={<ProtectedRoute><Layout><Community /></Layout></ProtectedRoute>} />
+                <Route path="/create-post" element={<ProtectedRoute><Layout><CreatePost /></Layout></ProtectedRoute>} />
+                <Route path="/network" element={<ProtectedRoute><Layout><Network /></Layout></ProtectedRoute>} />
+                <Route path="/messages" element={<ProtectedRoute><Layout><Messages /></Layout></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
 
-              // ... inside Routes
-              {/* Social Features */}
-              <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
-              <Route path="/community" element={<ProtectedRoute><Layout><Community /></Layout></ProtectedRoute>} />
-              <Route path="/create-post" element={<ProtectedRoute><Layout><CreatePost /></Layout></ProtectedRoute>} />
-              <Route path="/network" element={<ProtectedRoute><Layout><Network /></Layout></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><Layout><Messages /></Layout></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
-
-              <Route path="/admin" element={<AdminOnlyRoute><Layout><Admin /></Layout></AdminOnlyRoute>} />
-            </Routes>
-          </React.Suspense>
-        </HashRouter>
-      </AppContext.Provider>
-    </QueryClientProvider>
+                <Route path="/admin" element={<AdminOnlyRoute><Layout><Admin /></Layout></AdminOnlyRoute>} />
+              </Routes>
+            </React.Suspense>
+          </HashRouter>
+        </AppContext.Provider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 
