@@ -8,6 +8,7 @@ interface SEOProps {
     image?: string;
     url?: string;
     type?: string;
+    structuredData?: Record<string, any>;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -16,7 +17,8 @@ export const SEO: React.FC<SEOProps> = ({
     keywords,
     image = 'https://examsphare.web.app/og-image.png',
     url = window.location.href,
-    type = 'website'
+    type = 'website',
+    structuredData
 }) => {
     return (
         <Helmet>
@@ -41,6 +43,13 @@ export const SEO: React.FC<SEOProps> = ({
 
             {/* Canonical */}
             <link rel="canonical" href={url} />
+
+            {/* Structured Data (JSON-LD) */}
+            {structuredData && (
+                <script type="application/ld+json">
+                    {JSON.stringify(structuredData)}
+                </script>
+            )}
         </Helmet>
     );
 };

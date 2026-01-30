@@ -65,17 +65,26 @@
 * {
   box-sizing: border-box;
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease-out;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+
 }
 
 body {
   margin: 0;
   padding: 0;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent bounce effect on iOS */
+  overscroll-behavior-y: none;
+
 }
 
 h1,
@@ -142,6 +151,14 @@ h6 {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Allow text selection in inputs and logic areas */
+input,
+textarea,
+[contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Animations */

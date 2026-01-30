@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { App as CapacitorApp } from '@capacitor/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { UserState, Exam, StudyTask, Question, QuizResult, ChatMessage } from './types';
@@ -22,6 +23,7 @@ const Network = React.lazy(() => import('./pages/Network').then(module => ({ def
 const Messages = React.lazy(() => import('./pages/Messages').then(module => ({ default: module.Messages })));
 const Notifications = React.lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
 const CreatePost = React.lazy(() => import('./pages/CreatePost').then(module => ({ default: module.CreatePost })));
+import { Welcome } from './pages/Welcome';
 import { Button } from './components/ui/Button';
 import { Key, AlertTriangle, Database, ExternalLink, Shield, Sparkles } from 'lucide-react';
 import { auth, db, isFirebaseConfigured } from './services/firebase';
@@ -537,12 +539,14 @@ const App: React.FC = () => {
           updateTopicContent, updateTopicSubtopicDetails, updateTopicMindMap, updateTopicChatHistory, addQuestions, toggleFollow, theme, setTheme
         }}>
           <HashRouter>
+            <BackButtonHandler />
             <React.Suspense fallback={<Loader message="Loading App..." type="sparkle" />}>
               <Routes>
+                <Route path="/welcome" element={!user.isAuthenticated ? <Welcome /> : <Navigate to="/" />} />
                 <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
                 <Route path="/" element={user.isAuthenticated ? (
                   user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
-                ) : <Navigate to="/auth" />} />
+                ) : <Navigate to="/welcome" />} />
                 <Route path="/setup" element={user.isAuthenticated && !user.examSetupComplete ? <Setup /> : <Navigate to="/" />} />
                 <Route path="/syllabus" element={<ProtectedRoute><Layout><Syllabus /></Layout></ProtectedRoute>} />
                 <Route path="/topic/:topicId" element={<ProtectedRoute><Layout><TopicDetail /></Layout></ProtectedRoute>} />
@@ -572,6 +576,28 @@ const App: React.FC = () => {
     </HelmetProvider>
   );
 };
+
+const BackButtonHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/login') {
+        CapacitorApp.exitApp();
+      } else {
+        navigate(-1);
+      }
+    });
+
+    return () => {
+      CapacitorApp.removeAllListeners();
+    };
+  }, [navigate, location]);
+
+  return null;
+};
+
 
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { user } = useApp();
