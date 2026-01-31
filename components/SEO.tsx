@@ -45,11 +45,25 @@ export const SEO: React.FC<SEOProps> = ({
             <link rel="canonical" href={url} />
 
             {/* Structured Data (JSON-LD) */}
-            {structuredData && (
-                <script type="application/ld+json">
-                    {JSON.stringify(structuredData)}
-                </script>
-            )}
+            <script type="application/ld+json">
+                {JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    "name": "ExamSphere",
+                    "url": "https://examsphare.web.app",
+                    "logo": "https://examsphare.web.app/logo.png",
+                    "sameAs": [
+                        "https://twitter.com/examsphere",
+                        "https://github.com/examsphere"
+                    ],
+                    "contactPoint": {
+                        "@type": "ContactPoint",
+                        "contactType": "customer support",
+                        "email": "support@examsphere.app"
+                    },
+                    ...structuredData
+                })}
+            </script>
         </Helmet>
     );
 };
