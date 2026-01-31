@@ -24,6 +24,8 @@ const Messages = React.lazy(() => import('./pages/Messages').then(module => ({ d
 const Notifications = React.lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
 const CreatePost = React.lazy(() => import('./pages/CreatePost').then(module => ({ default: module.CreatePost })));
 const VerifyEmail = React.lazy(() => import('./pages/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
+const Directory = React.lazy(() => import('./pages/Directory').then(module => ({ default: module.Directory })));
+const ExamLanding = React.lazy(() => import('./pages/ExamLanding').then(module => ({ default: module.ExamLanding })));
 import { Welcome } from './pages/Welcome';
 import { Button } from './components/ui/Button';
 import { Key, AlertTriangle, Database, ExternalLink, Shield, Sparkles } from 'lucide-react';
@@ -547,6 +549,8 @@ const App: React.FC = () => {
             <React.Suspense fallback={<Loader message="Loading App..." type="sparkle" />}>
               <Routes>
                 <Route path="/welcome" element={!user.isAuthenticated ? <Welcome /> : <Navigate to="/" />} />
+                <Route path="/directory" element={<Directory />} />
+                <Route path="/exam/:examId" element={<ExamLanding />} />
                 <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
                 <Route path="/verify-email" element={user.isAuthenticated && !user.emailVerified ? <VerifyEmail /> : <Navigate to="/" />} />
                 <Route path="/" element={user.isAuthenticated ? (
