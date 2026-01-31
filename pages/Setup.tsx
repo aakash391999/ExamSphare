@@ -93,41 +93,49 @@ export const Setup: React.FC = () => {
 
         <div className="glass-card p-6 md:p-12 space-y-16">
           {/* Step 1 */}
-          <section className="space-y-10">
+          <section className="space-y-6">
             <div className="flex items-center gap-5">
-              <div className="w-12 h-12 bg-brand-primary text-white font-black text-xl rounded-2xl flex items-center justify-center shadow-lg shadow-brand-primary/20">1</div>
+              <div className="w-12 h-12 bg-brand-primary text-white font-black text-xl rounded-2xl flex items-center justify-center shadow-lg shadow-brand-primary/20 shrink-0">1</div>
               <div className="space-y-1">
                 <h2 className="text-2xl font-black">Target Objective</h2>
                 <p className="text-theme-muted text-xs font-bold uppercase tracking-widest">Select your core academic path</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {exams.map((exam) => (
-                <button
-                  key={exam.id}
-                  onClick={() => handleExamSelect(exam.id)}
-                  className={`p-6 rounded-3xl text-left border-2 transition-all group relative overflow-hidden ${selectedExam === exam.id
-                    ? 'border-brand-primary bg-brand-primary/5 ring-4 ring-brand-primary/5'
-                    : 'border-theme-border bg-theme-bg/50 hover:border-brand-primary/50'
-                    }`}
-                >
-                  <div className="flex items-start gap-4 h-full">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selectedExam === exam.id ? 'bg-brand-primary text-white' : 'bg-theme-border text-theme-muted'}`}>
-                      <GraduationCap size={24} />
+            <div className="max-h-[60vh] overflow-y-auto pr-2 -mr-2 space-y-1 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
+                {exams.map((exam) => (
+                  <button
+                    key={exam.id}
+                    onClick={() => handleExamSelect(exam.id)}
+                    className={`p-5 rounded-2xl text-left border-2 transition-all group relative overflow-hidden flex flex-col h-full ${selectedExam === exam.id
+                      ? 'border-brand-primary bg-brand-primary/10 ring-2 ring-brand-primary/20 shadow-xl shadow-brand-primary/10'
+                      : 'border-theme-border bg-theme-bg/30 hover:bg-theme-bg/50 hover:border-theme-muted/50'
+                      }`}
+                  >
+                    <div className="flex items-start justify-between w-full mb-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selectedExam === exam.id ? 'bg-brand-primary text-white' : 'bg-theme-card border border-theme-border text-theme-muted'}`}>
+                        <GraduationCap size={20} />
+                      </div>
+                      {selectedExam === exam.id && (
+                        <div className="text-brand-primary animate-in zoom-in duration-300">
+                          <CheckCircle size={20} />
+                        </div>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <h3 className="font-black text-lg">{exam.name}</h3>
-                      <p className="text-xs text-theme-muted font-bold leading-relaxed">{exam.description}</p>
+
+                    <div className="mt-auto space-y-2">
+                      <h3 className={`font-black text-base line-clamp-1 ${selectedExam === exam.id ? 'text-brand-primary' : 'text-theme-main'}`}>{exam.name}</h3>
+                      <p className="text-[10px] text-theme-muted font-bold leading-relaxed line-clamp-2">{exam.description}</p>
                     </div>
-                  </div>
-                  {selectedExam === exam.id && (
-                    <div className="absolute top-4 right-4 text-brand-primary animate-in zoom-in duration-300">
-                      <CheckCircle size={20} />
-                    </div>
-                  )}
-                </button>
-              ))}
+
+                    {/* Active Glow Effect */}
+                    {selectedExam === exam.id && (
+                      <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 to-transparent pointer-events-none" />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
 

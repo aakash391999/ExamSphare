@@ -325,10 +325,10 @@ export const Messages: React.FC = () => {
 
                         {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {messages.map(msg => {
+                            {messages.map((msg, idx) => {
                                 const isMe = msg.senderId === currentUser.uid;
                                 return (
-                                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                    <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[70%] rounded-2xl p-4 ${isMe ? 'bg-brand-primary text-white rounded-br-none' : 'bg-white border border-theme-border rounded-bl-none'}`}>
                                             {msg.attachmentUrl && (
                                                 <div className="mb-2 rounded-lg overflow-hidden">
@@ -374,6 +374,7 @@ export const Messages: React.FC = () => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault();
+                                                e.stopPropagation(); // Stop event bubbling
                                                 handleSendMessage();
                                             }
                                         }}

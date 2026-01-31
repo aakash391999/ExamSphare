@@ -175,7 +175,7 @@ export const Analytics: React.FC = () => {
           <h3 className="text-xl font-black">Accuracy Architecture</h3>
           <div className="h-[300px] md:h-[400px]">
             {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F020" />
                   <XAxis
@@ -210,7 +210,7 @@ export const Analytics: React.FC = () => {
         <div className="glass-card p-6 md:p-8 flex flex-col items-center justify-between gap-8">
           <h3 className="text-xl font-black self-start">Proficiency Radar</h3>
           <div className="w-full h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={subjectData}>
                 <PolarGrid stroke="#E2E8F0" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />

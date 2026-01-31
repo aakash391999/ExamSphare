@@ -4,6 +4,7 @@ import { useApp } from '../App';
 import { CheckCircle, Bot, Send, User, ArrowLeft, Play, List, Sparkles, RefreshCw, ChevronDown, Mic, Layers, Network, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { askAITutor, generateTopicStudyMaterial, generateSubtopicDetails, generateMindMap } from '../services/geminiService';
 import { Badge } from '../components/ui/Badge';
+import { SEO } from '../components/SEO';
 import ReactMarkdown from 'react-markdown';
 import mermaid from 'mermaid';
 
@@ -175,12 +176,6 @@ export const TopicDetail: React.FC = () => {
     }
   }, [messages, activeTab]);
 
-  React.useEffect(() => {
-    if (topic) {
-      document.title = `${topic.name} | ExamSphere Neural Learning`;
-    }
-  }, [topic]);
-
   if (!currentExam || !subject || !topic) return <div className="p-8">Topic not found</div>;
 
   const isCompleted = user.completedTopics.includes(topic.id);
@@ -219,8 +214,29 @@ export const TopicDetail: React.FC = () => {
     speakResponse(answer);
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    "name": topic.name,
+    "description": topic.description,
+    "learningResourceType": ["Concept Overview", "Mind Map", "AI Tutor"],
+    "educationalLevel": currentExam?.name || "General",
+    "author": {
+      "@type": "Organization",
+      "name": "ExamSphere"
+    },
+    "datePublished": new Date().toISOString().split('T')[0],
+    "inLanguage": "en"
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-8 pb-24 lg:pb-20 animate-fade-in h-auto lg:h-full">
+      <SEO
+        title={topic.name}
+        description={topic.description || `Master ${topic.name} for ${currentExam?.name} with AI-powered notes and mind maps.`}
+        structuredData={structuredData}
+        keywords={`${topic.name}, ${currentExam?.name}, AI Tutor, Exam Prep, ${subject?.name}`}
+      />
       <div className="flex-1 flex flex-col min-w-0 min-h-[500px] lg:min-h-[600px]">
         <div className="glass-card flex-1 flex flex-col lg:overflow-hidden border-2 border-theme-border shadow-2xl">
           {/* Header */}

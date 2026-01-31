@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
@@ -23,6 +23,7 @@ const Network = React.lazy(() => import('./pages/Network').then(module => ({ def
 const Messages = React.lazy(() => import('./pages/Messages').then(module => ({ default: module.Messages })));
 const Notifications = React.lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
 const CreatePost = React.lazy(() => import('./pages/CreatePost').then(module => ({ default: module.CreatePost })));
+const VerifyEmail = React.lazy(() => import('./pages/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
 import { Welcome } from './pages/Welcome';
 import { Button } from './components/ui/Button';
 import { Key, AlertTriangle, Database, ExternalLink, Shield, Sparkles } from 'lucide-react';
@@ -71,6 +72,7 @@ const initialUser: UserState = {
   isAuthenticated: false,
   name: '',
   email: '',
+  emailVerified: false,
   selectedExamId: null,
   completedTopics: [],
   mistakes: [],
@@ -173,6 +175,7 @@ const App: React.FC = () => {
               isAuthenticated: true,
               name: userData.name || firebaseUser.displayName || 'Student',
               email: firebaseUser.email || '',
+              emailVerified: firebaseUser.emailVerified,
               selectedExamId: userData.selectedExamId || null,
               completedTopics: userData.completedTopics || [],
               mistakes: userData.mistakes || [],
@@ -200,6 +203,7 @@ const App: React.FC = () => {
               uid: firebaseUser.uid,
               name: firebaseUser.displayName || 'Student',
               email: firebaseUser.email || '',
+              emailVerified: firebaseUser.emailVerified,
               selectedExamId: null,
               completedTopics: [],
               mistakes: [],
@@ -538,14 +542,16 @@ const App: React.FC = () => {
           markTopicCompleted, addMistake, removeMistake, updateDailyTasks, saveQuizResult, refreshData,
           updateTopicContent, updateTopicSubtopicDetails, updateTopicMindMap, updateTopicChatHistory, addQuestions, toggleFollow, theme, setTheme
         }}>
-          <HashRouter>
+          <BrowserRouter>
             <BackButtonHandler />
             <React.Suspense fallback={<Loader message="Loading App..." type="sparkle" />}>
               <Routes>
                 <Route path="/welcome" element={!user.isAuthenticated ? <Welcome /> : <Navigate to="/" />} />
                 <Route path="/auth" element={!user.isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+                <Route path="/verify-email" element={user.isAuthenticated && !user.emailVerified ? <VerifyEmail /> : <Navigate to="/" />} />
                 <Route path="/" element={user.isAuthenticated ? (
-                  user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
+                  !user.emailVerified ? <Navigate to="/verify-email" /> :
+                    user.examSetupComplete ? <Layout><Dashboard /></Layout> : <Navigate to="/setup" />
                 ) : <Navigate to="/welcome" />} />
                 <Route path="/setup" element={user.isAuthenticated && !user.examSetupComplete ? <Setup /> : <Navigate to="/" />} />
                 <Route path="/syllabus" element={<ProtectedRoute><Layout><Syllabus /></Layout></ProtectedRoute>} />
@@ -570,7 +576,7 @@ const App: React.FC = () => {
                 <Route path="/admin" element={<AdminOnlyRoute><Layout><Admin /></Layout></AdminOnlyRoute>} />
               </Routes>
             </React.Suspense>
-          </HashRouter>
+          </BrowserRouter>
         </AppContext.Provider>
       </QueryClientProvider>
     </HelmetProvider>
@@ -602,6 +608,7 @@ const BackButtonHandler = () => {
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { user } = useApp();
   if (!user.isAuthenticated) return <Navigate to="/auth" />;
+  if (!user.emailVerified) return <Navigate to="/verify-email" />;
   if (!user.examSetupComplete) return <Navigate to="/setup" />;
   return children;
 };

@@ -62,6 +62,7 @@ export interface UserState {
   isAuthenticated: boolean;
   name: string;
   email: string;
+  emailVerified: boolean;
   selectedExamId: string | null;
   completedTopics: string[];
   mistakes: string[];

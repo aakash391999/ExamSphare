@@ -17,7 +17,7 @@ export const generateStudyPlan = async (examName: string, hours: number, weakSub
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `Create a daily study plan for a student preparing for ${examName}. 
       They have ${hours} hours available today. 
       Weak subjects: ${weakSubjects.join(', ')}. 
@@ -65,7 +65,7 @@ export const askAITutor = async (context: string, question: string) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `You are an expert tutor. 
       Context: ${context}
       
@@ -90,7 +90,7 @@ export const generateAnalyticsTips = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `You are an expert exam coach for ${examName}.
       
       Student Data:
@@ -127,7 +127,7 @@ export const generateExamSyllabus = async (topic: string): Promise<any> => {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash', // Using a stable model
+      model: 'gemini-3-flash-preview', // Using a stable model
       contents: `Act as an expert curriculum designer. Create a detailed syllabus structure for the exam: "${topic}".
             
             Structure Required:
@@ -192,7 +192,7 @@ export const generateQuestions = async (examName: string, topicName: string, cou
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `Create ${count} multiple-choice questions for the exam "${examName}" on the topic "${topicName}".
             
             Difficulty: Mixed.
@@ -238,7 +238,7 @@ export const generateTopicStudyMaterial = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `You are an expert professor for the exam "${examName}".
       
       Create a highly detailed, comprehensive study guide for the topic: "${topicName}" (Subject: ${subjectName}).
@@ -273,7 +273,7 @@ export const generateSubtopicDetails = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `For the topic "${topicName}", generate detailed content for the following subtopics: ${subtopics.join(', ')}.
       
       For each subtopic, provide:
@@ -312,7 +312,7 @@ export const generateMindMap = async (topicName: string, subtopics: string[]): P
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `Generate a rich, multi-level Mermaid.js mindmap syntax for the topic "${topicName}".
       Includes these subtopics: ${subtopics.join(', ')}.
       
